@@ -9,19 +9,25 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.control.PasswordField?>
 <VBox alignment="CENTER" pickOnBounds="false" prefHeight="401.0" prefWidth="609.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="clientchat.Controller">
     <children>
+        <HBox fx:id="upperPanel">
+            <TextField fx:id="loginField" promptText="Логин"/>
+            <PasswordField fx:id="passField" promptText="Пароль"/>
+            <Button fx:id="btnAuth" text="Авторизоваться" onAction="#onAuthClick"/>
+        </HBox>
         <TextArea fx:id="jta" editable="false" focusTraversable="false" opacity="0.44" pickOnBounds="false" prefHeight="406.0" prefWidth="609.0">
             <font>
                 <Font name="SansSerif Regular" size="18.0" />
             </font></TextArea>
-        <HBox pickOnBounds="false" prefHeight="100.0" prefWidth="200.0">
+        <HBox visible="false" fx:id="bottomPanel" pickOnBounds="false" prefHeight="100.0" prefWidth="200.0">
             <children>
                 <TextField fx:id="jtf" onAction="#onEnter" pickOnBounds="false" prefHeight="47.0" prefWidth="435.0">
                     <font>
                         <Font name="SansSerif Regular" size="18.0" />
                     </font></TextField>
-                <Button mnemonicParsing="false" onAction="#sendMsg" pickOnBounds="false" prefHeight="47.0" prefWidth="184.0" text="Send" textFill="#050505" textOverrun="CLIP">
+                <Button mnemonicParsing="false" onAction="#onSendMsg" pickOnBounds="false" prefHeight="47.0" prefWidth="184.0" text="Send" textFill="#050505" textOverrun="CLIP">
                     <cursor>
                         <Cursor fx:constant="HAND" />
                     </cursor>
