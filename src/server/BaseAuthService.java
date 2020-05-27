@@ -2,7 +2,7 @@ package server;
 
 import java.util.ArrayList;
 
-public class BaseAuthService implements AuthService{
+public class BaseAuthService  implements AuthService  {
     private class Entry {
         private String login;
         private String pass;
@@ -22,6 +22,21 @@ public class BaseAuthService implements AuthService{
 
     @Override
     public void stop() { }
+
+    @Override
+    public boolean changeNick(ClientHandler c, String newNick) {
+        for (Entry o : entries) {
+            if (o.nick.equals(newNick))
+                return false;
+        }
+        for (Entry o : entries) {
+            if (o.nick.equals(c.getName())) {
+                o.nick = newNick;
+                return true;
+            }
+        }
+        return false;
+    }
 
     public BaseAuthService() {
         entries = new ArrayList<>();

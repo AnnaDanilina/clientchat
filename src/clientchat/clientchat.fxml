@@ -2,39 +2,61 @@
 
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.effect.ColorAdjust?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.control.PasswordField?>
-<VBox alignment="CENTER" pickOnBounds="false" prefHeight="401.0" prefWidth="609.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="clientchat.Controller">
-    <children>
+<BorderPane fx:id="mainPanel" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="clientchat.Controller">
+    <top>
         <HBox fx:id="upperPanel">
-            <TextField fx:id="loginField" promptText="Логин"/>
-            <PasswordField fx:id="passField" promptText="Пароль"/>
-            <Button fx:id="btnAuth" text="Авторизоваться" onAction="#onAuthClick"/>
+            <TextField fx:id="loginField" promptText="Логин" />
+            <PasswordField fx:id="passField" onAction="#onAuthClick" promptText="Пароль" />
+            <Button fx:id="btnAuth" onAction="#onAuthClick" text="Авторизоваться" />
         </HBox>
-        <TextArea fx:id="jta" editable="false" focusTraversable="false" opacity="0.44" pickOnBounds="false" prefHeight="406.0" prefWidth="609.0">
+    </top>
+    <center>
+        <TextArea fx:id="jta" editable="false" focusTraversable="false" opacity="0.44" pickOnBounds="false" prefHeight="Infinity" prefWidth="Infinity">
             <font>
                 <Font name="SansSerif Regular" size="18.0" />
-            </font></TextArea>
-        <HBox visible="false" fx:id="bottomPanel" pickOnBounds="false" prefHeight="100.0" prefWidth="200.0">
+            </font>
+        </TextArea>
+    </center>
+
+    <right>
+        <VBox fx:id="clientsPanel">
+            <Label alignment="CENTER" contentDisplay="CENTER" text="Участники" textAlignment="CENTER">
+                <font>
+                    <Font name="System Bold" size="14.0" />
+                </font>
+            </Label>
+            <ListView fx:id="clientsList" onMouseClicked="#listClick" prefWidth="150" VBox.vgrow="ALWAYS" />
+        </VBox>
+    </right>
+    <bottom>
+        <HBox fx:id="bottomPanel" pickOnBounds="false" prefHeight="50.0" prefWidth="200.0" visible="false">
             <children>
-                <TextField fx:id="jtf" onAction="#onEnter" pickOnBounds="false" prefHeight="47.0" prefWidth="435.0">
+                <TextField fx:id="jtf" onAction="#onEnter" pickOnBounds="false" HBox.hgrow="ALWAYS" prefHeight="50.0">
                     <font>
                         <Font name="SansSerif Regular" size="18.0" />
-                    </font></TextField>
-                <Button mnemonicParsing="false" onAction="#onSendMsg" pickOnBounds="false" prefHeight="47.0" prefWidth="184.0" text="Send" textFill="#050505" textOverrun="CLIP">
+                    </font>
+                </TextField>
+                <Button onAction="#onSendMsg" text="Send" pickOnBounds="false" prefHeight="50.0" prefWidth="150.0">
                     <cursor>
                         <Cursor fx:constant="HAND" />
                     </cursor>
                     <effect>
                         <ColorAdjust />
-                    </effect></Button>
+                    </effect>
+                </Button>
             </children>
         </HBox>
-    </children>
-</VBox>
+    </bottom>
+
+</BorderPane>

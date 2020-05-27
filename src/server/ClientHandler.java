@@ -12,10 +12,6 @@ public class ClientHandler {
     private DataOutputStream out;
     private String name;
 
-    public String getName() {
-        return name;
-    }
-
     public ClientHandler(Server server, Socket socket) {
         try {
             this.server = server;
@@ -46,11 +42,20 @@ public class ClientHandler {
                     while (true) {
                         String str = in.readUTF();
                         System.out.println("from " + name + ": " + str);
-                        if (str.equals("/end")) break;
-                        if (str.startsWith("/w ")){
-                            String [] strar = str.split(" ",3);
-                            server.sendMsgToNick(this,strar[1],strar[2]);
-
+                        if (str.startsWith("/")) {
+                            if (str.equals("/end")) break;
+                            if (str.startsWith("/w ")) {
+                                String[] strar = str.split(" ", 3);
+                                server.sendMsgToNick(this, strar[1], strar[2]);
+                            }
+                            if (str.startsWith("/changenick ")) {
+                                String newNick = str.split("\\s")[1];
+                                if (server.getAuthService().changeNick(this, newNick)) {
+                                    changeNick(newNick);
+                                } else {
+                                    sendMsg("Указанный ник уже кем-то занят");
+                                }
+                            }
                         } else
                             server.broadcastMsg(name + ": " + str);
                     }
@@ -66,9 +71,22 @@ public class ClientHandler {
                     }
                 }
             }).start();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void changeNick(String newNick) {
+        server.broadcastMsg(name + " сменил ник на " + newNick);
+        name = newNick;
+        sendMsg("/yournickis " + newNick);
+        server.broadcastClientList();
+    }
+
+
+    public String getName() {
+        return name;
     }
 
     public void sendMsg(String msg) {

@@ -1,12 +1,15 @@
 package clientchat;
-
+import javafx.scene.control.Alert;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -28,63 +31,141 @@ public class Controller implements Initializable {
 
     public HBox bottomPanel;
     public HBox upperPanel;
+    public VBox clientsPanel;
 
+    public BorderPane mainPanel;
+    public ListView clientsList;
+    public ObservableList<String> obsClients;
+
+    private boolean timeOUT;
     private boolean authorized;
+
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
 
+    private String myNick = "";
+
     public void setAuthorized(boolean authorized) {
         this.authorized = authorized;
-        if (!this.authorized) {
-            upperPanel.setVisible(true);
-            bottomPanel.setVisible(false);
+        if (this.timeOUT) {
+            showTimeOUT();
         } else {
-            upperPanel.setVisible(false);
-            bottomPanel.setVisible(true);
-            jta.clear();
+            if (!this.authorized) {
+                upperPanel.setManaged(true);
+                bottomPanel.setManaged(false);
+                upperPanel.setVisible(true);
+                bottomPanel.setVisible(false);
+                clientsPanel.setManaged(false);
+                clientsPanel.setVisible(false);
+                Platform.runLater(() -> Main.mainStage.setTitle("JavaFX Client"));
+            } else {
+                upperPanel.setManaged(false);
+                bottomPanel.setManaged(true);
+                upperPanel.setVisible(false);
+                bottomPanel.setVisible(true);
+                clientsPanel.setManaged(true);
+                clientsPanel.setVisible(true);
+                jta.clear();
+            }
         }
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        timeOUT = false;
+        setAuthorized(false);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(120000);
+                    if (!authorized) {
+                        timeOUT = true;
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                        } finally {
+                            showTimeOUT();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public void start() {
         try {
+            setAuthorized(false);
             socket = new Socket("localhost", 8189);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            setAuthorized(false);
+            obsClients = FXCollections.observableArrayList();
+            clientsList.setItems(obsClients);
             Thread t = new Thread(() -> {
                 try {
                     while (true) {
                         String str = in.readUTF();
                         if (str.startsWith("/authok")) {
                             setAuthorized(true);
+
+                            myNick = str.split("\\s")[1];
+                            Platform.runLater(() -> Main.mainStage.setTitle("JavaFX Client: " + myNick));
                             break;
                         }
                         jta.appendText(str + "\n");
                     }
                     while (true) {
                         String str = in.readUTF();
-                        if (str.equals("/end")) {
-                            break;
+                        if (str.startsWith("/")) {
+                            if (str.equals("/end")) {
+                                break;
+                            }
+                            if (str.startsWith("/clients ")) {
+                                String[] s = str.split("\\s");
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        clientsList.getItems().clear();
+                                        for (int i = 1; i < s.length; i++) {
+                                            clientsList.getItems().add(s[i]);
+                                        }
+                                    }
+                                });
+                            }
+                            if (str.startsWith("/yournickis")) {
+                                myNick = str.split("\\s")[1];
+                                Platform.runLater(() -> Main.mainStage.setTitle("JavaFX Client: " + myNick));
+                            }
+                        } else {
+                            jta.appendText(str + "\n");
                         }
-                        jta.appendText(str + "\n");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
                     try {
+                        setAuthorized(false);
                         socket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    setAuthorized(false);
                 }
             });
-            t.setDaemon(true);
             t.start();
+
         } catch (IOException e) {
-            Platform.exit();
+            e.printStackTrace();
+        }
+    }
+
+    public void closeConnection() {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -115,6 +196,8 @@ public class Controller implements Initializable {
     }
 
     public void onAuthClick() {
+        if (socket == null || socket.isClosed())
+            start();
         try {
             out.writeUTF("/auth " + loginField.getText() + " " + passField.getText());
             loginField.clear();
@@ -122,5 +205,21 @@ public class Controller implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void listClick(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2) {
+            jtf.setText("/w " + clientsList.getSelectionModel().getSelectedItem().toString() + " ");
+            jtf.requestFocus();
+            jtf.selectEnd();
+        }
+    }
+
+    public void showTimeOUT(){
+        jta.appendText("Время подключения истекло");
+        upperPanel.setManaged(false);
+        upperPanel.setVisible(false);
+        Platform.runLater(() -> Main.mainStage.setTitle("Время подключения истекло"));
+
     }
 }
